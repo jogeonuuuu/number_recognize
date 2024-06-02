@@ -2,37 +2,55 @@
 namespace jgw {
 	extern bool ox = true;
 
+	//ê¸°ëŠ¥ì— ëŒ€í•œ ë¬¸ìì—´ ì…ë ¥ì°½ì— ì‚½ì…
+	void putText_function(Mat& src, String* text) {
+		int thickness = 2; //ë‘ê»˜
+		int fontFace = FONT_HERSHEY_SIMPLEX;
+		double fontScale = 1.0; //í°íŠ¸ í¬ê¸° í™•ëŒ€/ì¶•ì†Œ ë¹„ìœ¨
+		int old_height = 0;
+		int current_height = 0;
+		for (int i = 0; i <= text->size(); i++) {
+			Size sizeText = getTextSize(text[i], fontFace, fontScale, thickness, 0);
+			Mat dst = src(Rect(INPUT_WINDOW, 0, src.cols - INPUT_WINDOW, src.rows)); //ê³„ì† ë³€ê²½ë  ê°’(ê¸°ëŠ¥ ì „ì²´ ì˜ì—­)
+			old_height = dst.rows * i / 5;
+			current_height = dst.rows * (i + 1) / 5 + old_height;
+			Point org((dst.cols - sizeText.width) / 2, (current_height + sizeText.height) / 2);
+			putText(dst, text[i], org, fontFace, fontScale, Scalar(0, 0, 0), thickness);
+		}
+	}
+
 	//Clear
 	void clear_function(Mat& src, Rect& area) {
 		src(area) = Scalar(255, 255, 255);
 		rectangle(src, area, Scalar(0, 0, 0), 2);
-		cout << "ÀÔ·ÂÃ¢ »èÁ¦µÊ" << endl;
+		cout << "ì…ë ¥ì°½ ì‚­ì œë¨" << endl;
 	}
 	//Save
 	void save_function(Mat& src, Rect& area) {
 		String file_name;
-		cout << "<Save> ÆÄÀÏ¸í ÀÔ·Â : "; //ÇĞ¹ø_00_00
+		cout << "<Save> íŒŒì¼ëª… ì…ë ¥ : "; //í•™ë²ˆ_00_00
 		cin >> file_name;
 		if (file_name == "exit") return;
 
+
 		file_name += ".jpg";
 		bool tf = imwrite(file_name, src(area));
-		if (tf) cout << file_name << "ÆÄÀÏÀÌ ÀúÀåµÊ" << endl;
+		if (tf) cout << file_name << "íŒŒì¼ì´ ì €ì¥ë¨" << endl;
 	}
 	//Load
 	void load_function(Mat& src, Rect& area) {
 		String file_name;
-		cout << "<Load> ÆÄÀÏ¸í ÀÔ·Â : "; //ÇĞ¹ø_00_00
+		cout << "<Load> íŒŒì¼ëª… ì…ë ¥ : "; //í•™ë²ˆ_00_00
 		cin >> file_name;
 		if (file_name == "exit") return;
 
 		file_name += ".jpg";
 		Mat mRead = imread(file_name);
 		if (mRead.empty()) {
-			cout << "ÆÄÀÏ ºÒ·¯¿À±â ½ÇÆĞ" << endl;
+			cout << "íŒŒì¼ ë¶ˆëŸ¬ì˜¤ê¸° ì‹¤íŒ¨" << endl;
 			return;
 		}
-		cout << file_name << "ÆÄÀÏÀ» ºÒ·¯¿È" << endl;
+		cout << file_name << "íŒŒì¼ì„ ë¶ˆëŸ¬ì˜´" << endl;
 		mRead.copyTo(src(area));
 	}
 }
