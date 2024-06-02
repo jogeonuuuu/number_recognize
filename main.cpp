@@ -1,67 +1,52 @@
 #include "mylib.h"
-#define INPUT_WINDOW 500
-#define LINE_EXCEPT 2
 using namespace jgw;
 void onMouse(int event, int x, int y, int flags, void* userdata);
 int main(void) {
 	Mat src(500, 500, CV_8UC3, Scalar(255, 255, 255));
-	resize(src, src, Size(700, 500)); //°è¼Ó º¯°æµÉ °ª(±â´É Ãß°¡)
+	resize(src, src, Size(700, 500)); //ê³„ì† ë³€ê²½ë  ê°’(ê¸°ëŠ¥ ì¶”ê°€)
 
-	int thickness = 2; //µÎ²²
-
-	//¿µ¿ª ¶óÀÎ
+	//ì˜ì—­ ë¼ì¸
+	int thickness = 2; //ë‘ê»˜
 	rectangle(src, Rect(0, 0, src.cols, src.rows), Scalar(0, 0, 0), thickness);
 	line(src, Point(INPUT_WINDOW - 1, 0), Point(INPUT_WINDOW - 1, src.rows - 1), Scalar(0, 0, 0), thickness);
-	for (int y = src.rows / 5; y < src.rows; y += src.rows / 5) //±â´É ¿µ¿ª ºĞ¸®
+	for (int y = src.rows / 5; y < src.rows; y += src.rows / 5) //ê¸°ëŠ¥ ì˜ì—­ ë¶„ë¦¬
 		line(src, Point(INPUT_WINDOW, y), Point(src.cols - 1, y), Scalar(0, 0, 0), thickness);
 
-	//±â´É¿¡ ´ëÇÑ ¹®ÀÚ¿­ ÀÔ·ÂÃ¢¿¡ »ğÀÔ
-	String function_text[] = {"Save", "Load", "Clear", "Run", "Exit"};
-	int fontFace = FONT_HERSHEY_SIMPLEX;
-	double fontScale = 1.0; //ÆùÆ® Å©±â È®´ë/Ãà¼Ò ºñÀ²
-	int old_height = 0;
-	int current_height = 0;
-	for (int i = 0; i < 5; i++) {
-		Size sizeText = getTextSize(function_text[i], fontFace, fontScale, thickness, 0);
-		Mat dst = src(Rect(INPUT_WINDOW, 0, src.cols - INPUT_WINDOW, src.rows)); //°è¼Ó º¯°æµÉ °ª(±â´É ÀüÃ¼ ¿µ¿ª)
-		old_height = dst.rows * i / 5;
-		current_height = dst.rows * (i + 1) / 5 + old_height;
-		Point org((dst.cols - sizeText.width) / 2, (current_height + sizeText.height) / 2);
-		putText(dst, function_text[i], org, fontFace, fontScale, Scalar(0, 0, 0), thickness);
-	}
+	//ê¸°ëŠ¥ì— ëŒ€í•œ ë¬¸ìì—´ ì…ë ¥ì°½ì— ì‚½ì…
+	String function_text[] = { "Save", "Load", "Clear", "Run", "Exit" };
+	putText_function(src, function_text);
+
 	namedWindow("src");
 	setMouseCallback("src", onMouse, &src);
 
-	//jgw::ox; //static ¹æ½ÄÀ¸·Î ÇßÀ» ¶§
 	while (ox) {
 		imshow("src", src);
 		waitKey(1);
 	}
-	cout << "ÇÁ·Î±×·¥ Á¾·á" << endl;
+	cout << "í”„ë¡œê·¸ë¨ ì¢…ë£Œ" << endl;
 	return 0;
 }
 
-
 void onMouse(int event, int x, int y, int flags, void* userdata) {
 	Mat src = *(Mat*)userdata;
-	
-	Rect num_input_area = Rect(0, 0, INPUT_WINDOW, INPUT_WINDOW); //¼ıÀÚ ÀÔ·ÂÃ¢ ¿µ¿ª
-	Mat dst = src(Rect(INPUT_WINDOW, 0, src.cols - INPUT_WINDOW, src.rows));
 
-	//Rect·Î ÇØµµ °¡´ÉÇÑ ÀÌÀ¯´Â? (MatÀ¸·Î µ¥ÀÌÅÍ¸¦ ÀúÀåÇØ¾ßÁö ¾èÀº º¹»ç¸¦ ÅëÇØ ¿µ¿ªÀ» °øÀ¯ÇÒ ¼ö ÀÖ´Â °Å ¾Æ´ÑÁö) 
-	//vector<Mat> function_area; //¹æ¹ı(1)
-	vector<Rect> function_area; //¹æ¹ı(2) - °¢ ±â´ÉµéÀÇ ¿µ¿ª
+	//ìˆ«ì ì…ë ¥ì°½ ì˜ì—­
+	Rect num_input_area = Rect(0, 0, INPUT_WINDOW, INPUT_WINDOW);
+
+	//Rectë¡œ í•´ë„ ê°€ëŠ¥í•œ ì´ìœ ëŠ”? (Matìœ¼ë¡œ ë°ì´í„°ë¥¼ ì €ì¥í•´ì•¼ì§€ ì–•ì€ ë³µì‚¬ë¥¼ í†µí•´ ì˜ì—­ì„ ê³µìœ í•  ìˆ˜ ìˆëŠ” ê±° ì•„ë‹Œì§€) 
+	//vector<Mat> function_area; //ë°©ë²•(1)
+	vector<Rect> function_area; //ë°©ë²•(2) - ê° ê¸°ëŠ¥ë“¤ì˜ ì˜ì—­
 	//0: "Save", 1: "Load", 2: "Clear", 3: "Run", 4: "Exit"
 	for (int i = 0; i < 5; i++) {
-		//Mat x = dst(Rect(0, dst.rows * i / 5, dst.cols, dst.rows / 5)); //¹æ¹ı(1)
-		Rect x = Rect(INPUT_WINDOW, src.rows * i / 5, src.cols - INPUT_WINDOW, src.rows / 5); //¹æ¹ı(2)
+		//Mat x = dst(Rect(0, dst.rows * i / 5, dst.cols, dst.rows / 5)); //ë°©ë²•(1)
+		Rect x = Rect(INPUT_WINDOW, src.rows * i / 5, src.cols - INPUT_WINDOW, src.rows / 5); //ë°©ë²•(2)
 		function_area.push_back(x);
 	}
 
 	static Point old_pixel;
 	switch (event) {
 	case EVENT_LBUTTONDOWN:
-		//lineÀ» ±×¸®±âÀ§ÇÑ pixel value
+		//lineì„ ê·¸ë¦¬ê¸°ìœ„í•œ pixel value
 		old_pixel = Point(x, y);
 		break;
 	case EVENT_LBUTTONUP:
@@ -78,13 +63,11 @@ void onMouse(int event, int x, int y, int flags, void* userdata) {
 			//Exit
 			else if (function_area[4].contains(old_pixel))
 				ox = false;
-				//jgw::ox = false; //static ¹æ½ÄÀ¸·Î ÇßÀ» ¶§
 		}
 		break;
 	case EVENT_MOUSEMOVE:
-		if (flags & EVENT_FLAG_LBUTTON) { //¿ŞÂÊ ¸¶¿ì½º°¡ ´­¸° »óÅÂ¿¡¼­ ¿òÁ÷ÀÌ´ÂÁö
-			//&& num_input_area.contains(old_pixel)
-			if (num_input_area.contains(Point(x, y)) ) { //500x500 ¿µ¿ª ¾È¿¡ ¿òÁ÷ÀÌ´ÂÁö
+		if (flags & EVENT_FLAG_LBUTTON) { //ì™¼ìª½ ë§ˆìš°ìŠ¤ê°€ ëˆŒë¦° ìƒíƒœì—ì„œ ì›€ì§ì´ëŠ”ì§€
+			if (num_input_area.contains(Point(x, y)) && num_input_area.contains(old_pixel)) { //500x500 ì˜ì—­ ì•ˆì— ì›€ì§ì´ëŠ”ì§€
 				line(src, old_pixel, Point(x, y), Scalar::all(0), 5);
 				old_pixel = Point(x, y);
 			}
