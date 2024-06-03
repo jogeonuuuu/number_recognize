@@ -12,3 +12,4 @@ https://github.com/jogeonuuuu/number_recognize/blob/814a6c753d13d0756d10d265ef84
 https://github.com/jogeonuuuu/number_recognize/blob/814a6c753d13d0756d10d265ef8471b2d33edb42/mylib.cpp#L6-L20
 - void putText_function(Mat& src, String* text)는 String 객체를 전달받아 각 기능에 대한 문자열을 중앙에 그려주는 함수
 - (main.cpp)line 12, (mylib.cpp)line 15, 16은 기능이 현재 5개라고 가정
+
