@@ -31,7 +31,6 @@ void onMouse(int event, int x, int y, int flags, void* userdata) {
 
 	//숫자 입력창 영역
 	Rect num_input_area = Rect(LINE_THICKNESS, LINE_THICKNESS, INPUT_WINDOW - 2 * LINE_THICKNESS, INPUT_WINDOW - 2 * LINE_THICKNESS);
-	cout << num_input_area.size() << endl;
 
 	vector<Rect> function_area; //각 기능들의 영역
 	//0: "Save", 1: "Load", 2: "Clear", 3: "Run", 4: "Exit"
