@@ -1,7 +1,5 @@
 #include "mylib.h"
 namespace jgw {
-	extern bool ox = true;
-
 	//기능에 대한 문자열 입력창에 삽입
 	void putText_function(Mat& src, String* text) {
 		int thickness = 2; //두께
@@ -22,7 +20,6 @@ namespace jgw {
 	//Clear
 	void clear_function(Mat& src, Rect& area) {
 		src(area) = Scalar(255, 255, 255);
-		rectangle(src, area, Scalar(0, 0, 0), 2);
 		cout << "입력창 삭제됨" << endl;
 	}
 	//Save
@@ -34,7 +31,9 @@ namespace jgw {
 
 
 		file_name += ".jpg";
-		bool tf = imwrite(file_name, src(area));
+		Mat dst;
+		resize(src, dst, Size(INPUT_WINDOW, INPUT_WINDOW));
+		bool tf = imwrite(file_name, dst);
 		if (tf) cout << file_name << "파일이 저장됨" << endl;
 	}
 	//Load
