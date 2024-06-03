@@ -16,3 +16,4 @@ namespace jgw {
 	void load_function(Mat& src, Rect& area);
 }
 #endif // !__MYLIB_H__
+
