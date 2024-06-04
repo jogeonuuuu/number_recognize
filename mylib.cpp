@@ -32,7 +32,7 @@ namespace jgw {
 
 		file_name += ".jpg";
 		Mat dst;
-		resize(src, dst, Size(INPUT_WINDOW, INPUT_WINDOW));
+		resize(src(area), dst, Size(INPUT_WINDOW, INPUT_WINDOW));
 		bool tf = imwrite(file_name, dst);
 		if (tf) cout << file_name << "파일이 저장됨" << endl;
 	}
@@ -50,6 +50,6 @@ namespace jgw {
 			return;
 		}
 		cout << file_name << "파일을 불러옴" << endl;
-		mRead.copyTo(src(area));
+		mRead(area).copyTo(src(area));
 	}
 }
