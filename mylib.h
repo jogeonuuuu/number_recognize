@@ -11,9 +11,9 @@ namespace jgw {
 	void putText_function(Mat& src, String* text);
 
 	//function
-	void clear_function(Mat& src, Rect& area);
 	void save_function(Mat& src, Rect& area);
 	void load_function(Mat& src, Rect& area);
+	void clear_function(Mat& src, Rect& area);
+	void run_function(Mat& src, Rect& area);
 }
 #endif // !__MYLIB_H__
-
