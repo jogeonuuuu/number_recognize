@@ -16,19 +16,13 @@ namespace jgw {
 			putText(dst, text[i], org, fontFace, fontScale, Scalar(0, 0, 0), thickness);
 		}
 	}
-
-	//Clear
-	void clear_function(Mat& src, Rect& area) {
-		src(area) = Scalar(255, 255, 255);
-		cout << "입력창 삭제됨" << endl;
-	}
+	
 	//Save
 	void save_function(Mat& src, Rect& area) {
 		String file_name;
 		cout << "<Save> 파일명 입력 : "; //학번_00_00
 		cin >> file_name;
 		if (file_name == "exit") return;
-
 
 		file_name += ".jpg";
 		Mat dst;
@@ -51,5 +45,14 @@ namespace jgw {
 		}
 		cout << file_name << "파일을 불러옴" << endl;
 		mRead(area).copyTo(src(area));
+	}
+	//Clear
+	void clear_function(Mat& src, Rect& area) {
+		src(area) = Scalar(255, 255, 255);
+		cout << "입력창 삭제됨" << endl;
+	}
+	//Run
+	void run_function(Mat& src, Rect& area) {
+
 	}
 }
