@@ -2,18 +2,11 @@
 using namespace jgw;
 void onMouse(int event, int x, int y, int flags, void* userdata);
 int main(void) {
-	Mat src(500, 900, CV_8UC3, Scalar(255, 255, 255));
+	Mat src(500, 500, CV_8UC3, Scalar(255, 255, 255));
+	String function_text[] = { "Save", "Load", "Clear", "Run", "Exit", "x1", "x2" };
+	int array_size = sizeof(function_text) / sizeof(function_text[0]);
 
-	//영역 라인
-	rectangle(src, Rect(0, 0, src.cols, src.rows), Scalar(0, 0, 0), LINE_THICKNESS);
-	line(src, Point(INPUT_WINDOW - 1, 0), Point(INPUT_WINDOW - 1, src.rows - 1), Scalar(0, 0, 0), LINE_THICKNESS);
-	for (int y = src.rows / 5; y < src.rows; y += src.rows / 5) { //기능 영역 분리(세로로 5개씩 자르기)
-		line(src, Point(INPUT_WINDOW, y), Point(src.cols - 1, y), Scalar(0, 0, 0), LINE_THICKNESS);
-
-	}
-
-	//기능에 대한 문자열 입력창에 삽입
-	String function_text[] = { "Save", "Load", "Clear", "Run", "Exit" };
+	draw_line(src, array_size);
 	putText_function(src, function_text);
 
 	namedWindow("src");
@@ -40,7 +33,7 @@ void onMouse(int event, int x, int y, int flags, void* userdata) {
 		Rect x = Rect(INPUT_WINDOW, src.rows * i / 5, src.cols - INPUT_WINDOW, src.rows / 5);
 		function_area.push_back(x);
 	}
-		
+
 	static Point old_pixel;
 	switch (event) {
 	case EVENT_LBUTTONDOWN:
