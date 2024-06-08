@@ -26,7 +26,7 @@ namespace jgw {
 	//기능에 대한 문자열 입력창에 삽입 함수
 	void putText_function(Mat& src, String* text, int array_size) {
 		int thickness = 2; //두께
-		int fontFace = FONT_HERSHEY_SIMPLEX;
+		int fontFace = FONT_HERSHEY_SIMPLEX; //폰트 
 		double fontScale = 1.0; //폰트 크기 확대/축소 비율
 
 		int old_height = 0;
@@ -50,7 +50,7 @@ namespace jgw {
 
 	//Save
 	void save_function(Mat& src, Rect& area) {
-		String file_route = "C:\\Users\\jogeo\\source\\repos\\Open_cv\\Project_기말\\num_data\\";
+		//String file_route = "C:\\Users\\jogeo\\source\\repos\\Open_cv\\Project_기말\\num_data\\"; //작성자 파일 경로
 		String file_name;
 		cout << "<Save> 파일명 입력 : "; //학번_00_00
 		cin >> file_name;
@@ -59,19 +59,21 @@ namespace jgw {
 		file_name += ".jpg";
 		Mat dst;
 		resize(src(area), dst, Size(INPUT_WINDOW, INPUT_WINDOW));
-		bool tf = imwrite(file_route + file_name, dst);
+		//bool tf = imwrite(file_route + file_name, dst);
+		bool tf = imwrite(file_name, dst);
 		if (tf) cout << file_name << "파일이 저장됨" << endl;
 	}
 	//Load
 	void load_function(Mat& src, Rect& area) {
-		String file_route = "C:\\Users\\jogeo\\source\\repos\\Open_cv\\Project_기말\\num_data\\";
+		//String file_route = "C:\\Users\\jogeo\\source\\repos\\Open_cv\\Project_기말\\num_data\\"; //작성자 파일 경로
 		String file_name;
 		cout << "<Load> 파일명 입력 : "; //학번_00_00
 		cin >> file_name;
 		if (file_name == "exit") return;
 
 		file_name += ".jpg";
-		Mat mRead = imread(file_route + file_name);
+		//Mat mRead = imread(file_route + file_name);
+		Mat mRead = imread(file_name);
 		if (mRead.empty()) {
 			cout << "파일 불러오기 실패" << endl;
 			return;
