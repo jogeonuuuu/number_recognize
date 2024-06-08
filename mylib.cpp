@@ -1,41 +1,50 @@
 #include "mylib.h"
 namespace jgw {
-	//각 기능들 영역 라인 그리기 함수
-	void draw_line(Mat& src, int array_size) {
-		int quotient = array_size / 5; //몫
-		int remainder = array_size % 5; //나머지
-		Size function_window(200, src.rows / 5);
-
-		//기능의 계수에 따라 src 사이즈 조정
-		if (array_size <= 5)
-			resize(src, src, Size(700, 500));
-		else if(array_size <=10)
-			resize(src, src, Size(900, 500));
-
-		rectangle(src, Rect(0, 0, src.cols, src.rows), Scalar(0, 0, 0), LINE_THICKNESS);
-		for (int x = INPUT_WINDOW; x < src.cols; x += 200) {
-			line(src, Point(x - 1, 0), Point(x - 1, src.rows - 1), Scalar(0, 0, 0), LINE_THICKNESS);
-			for (int y = function_window.height - 1; y < function_window.height * remainder; y += function_window.height) //기능 영역 분리(세로로 5개씩 자르기)
-				line(src, Point(x - 1, y), Point(x + 199, y), Scalar(0, 0, 0), LINE_THICKNESS);
+	//기능 개수에 따른 src 사이즈 조정 함수
+	void src_resize(Mat& src, int array_size) {
+		int count = 1;
+		while (true) {
+			if (array_size <= count * 5) {
+				resize(src, src, Size(INPUT_WINDOW + FUNCT_WINDOW_W * count, 500));
+				break;
+			}
+			count++;
 		}
 	}
 
-	//기능에 대한 문자열 입력창에 삽입
-	void putText_function(Mat& src, String* text) {
+	//각 기능들 영역 라인 그리기 함수
+	void draw_line(Mat& src, int array_size) {
+		rectangle(src, Rect(0, 0, src.cols, src.rows), Scalar(0, 0, 0), LINE_THICKNESS);
+		for (int x = INPUT_WINDOW - 1; x < src.cols; x += FUNCT_WINDOW_W) {
+			line(src, Point(x, 0), Point(x, src.rows - 1), Scalar(0, 0, 0), LINE_THICKNESS);            //세로줄
+			for (int y = FUNCT_WINDOW_H - 1; y < FUNCT_WINDOW_H * array_size; y += FUNCT_WINDOW_H)      //기능 영역 분리(세로로 5개씩 자르기)
+				line(src, Point(x, y), Point(x + FUNCT_WINDOW_W, y), Scalar(0, 0, 0), LINE_THICKNESS);  //가로줄
+			array_size -= 5;
+		}
+	}
+
+	//기능에 대한 문자열 입력창에 삽입 함수
+	void putText_function(Mat& src, String* text, int array_size) {
 		int thickness = 2; //두께
 		int fontFace = FONT_HERSHEY_SIMPLEX;
 		double fontScale = 1.0; //폰트 크기 확대/축소 비율
+
 		int old_height = 0;
 		int current_height = 0;
-		int array_size = sizeof(text) / sizeof(text[0]);
-		cout << array_size << endl;
+		int count = 0;
 		for (int i = 0; i < array_size; i++) {
-			Size sizeText = getTextSize(text[i], fontFace, fontScale, thickness, 0);
-			Mat dst = src(Rect(INPUT_WINDOW, 0, src.cols - INPUT_WINDOW, src.rows)); //계속 변경될 값(기능 전체 영역)
-			old_height = dst.rows * i / 5;
-			current_height = dst.rows * (i + 1) / 5 + old_height;
+			Size sizeText = getTextSize(text[i], fontFace, fontScale, thickness, 0); 
+			old_height = FUNCT_WINDOW_H * count;
+			current_height = (FUNCT_WINDOW_H * (count + 1)) + old_height;
+			Mat dst = src(Rect(INPUT_WINDOW + (FUNCT_WINDOW_W * (i / 5)), 0, FUNCT_WINDOW_W, src.rows));
+
 			Point org((dst.cols - sizeText.width) / 2, (current_height + sizeText.height) / 2);
 			putText(dst, text[i], org, fontFace, fontScale, Scalar(0, 0, 0), thickness);
+
+			if (++count == 5) {
+				count = 0;
+				cout << endl;
+			}
 		}
 	}
 
