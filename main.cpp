@@ -3,11 +3,12 @@ using namespace jgw;
 void onMouse(int event, int x, int y, int flags, void* userdata);
 int main(void) {
 	Mat src(500, 500, CV_8UC3, Scalar(255, 255, 255));
-	String function_text[] = { "Save", "Load", "Clear", "Run", "Exit", "x1", "x2" };
-	int array_size = sizeof(function_text) / sizeof(function_text[0]);
+	String function_text[] = { "Save", "Load", "Clear", "Run", "Exit", "Save", "x2" };
 
+	int array_size = sizeof(function_text) / sizeof(function_text[0]); //기능 개수
+	src_resize(src, array_size);
 	draw_line(src, array_size);
-	putText_function(src, function_text);
+	putText_function(src, function_text, array_size);
 
 	namedWindow("src");
 	setMouseCallback("src", onMouse, &src);
