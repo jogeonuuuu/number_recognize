@@ -1,6 +1,7 @@
 # number_recognize
-[객체 인식 작동 영상](https://youtu.be/-IGvKEwKx3o)
-[객체 인식 작동 영상](https://youtu.be/sDc75Gjcx60)
+[객체 인식 작동 영상(1)](https://youtu.be/-IGvKEwKx3o)
+
+[객체 인식 작동 영상(2)](https://youtu.be/sDc75Gjcx60)
 
 #### void src_resize(Mat& src, int array_size)
 https://github.com/jogeonuuuu/number_recognize/blob/8bcbea02443aa641ed58dca3bf970cf817b7b027/mylib.cpp#L4-L9
