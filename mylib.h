@@ -12,7 +12,7 @@ namespace jgw {
 	//기능 개수에 따른 src 사이즈 조정
 	void src_resize(Mat& src, int array_size);
 
-	//각 기능들 영역 라인 그리기 함수
+	//라인 그리기 함수
 	void draw_line(Mat& src, int array_size = 0);
 
 	//기능에 대한 문자열 입력창에 삽입
@@ -22,6 +22,9 @@ namespace jgw {
 	void save_function(Mat& src, Rect& area);
 	void load_function(Mat& src, Rect& area);
 	void clear_function(Mat& src, Rect& area);
+
+	void feature1(Mat& src, Rect& area);
+	void feature2(Mat& src);
 	void run_function(Mat& src, Rect& area);
 }
 #endif // !__MYLIB_H__
