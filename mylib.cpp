@@ -108,8 +108,19 @@ namespace jgw {
 	}
 
 	//Feature2
-	void feature2(Mat& src) {
-		cout << "feature2" << endl;
+	void feature2(Mat& src, Rect& area) {
+		Mat dst;
+		cvtColor(src(area), dst, COLOR_BGR2GRAY);
+		threshold(dst, dst, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
+
+		vector<vector<Point>> contours;
+		findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE); //외곽선 개수
+		int index_maxNum = contours.size() - 1;
+		Rect only_num = boundingRect(contours[index_maxNum]);
+		Mat dst2 = dst(only_num);
+		line(dst2, Point(0, dst2.rows / 2 - 1), Point(dst.cols - 1, dst2.rows / 2 - 1), 0, 3);
+		imshow("num", dst(only_num));
+		cout << "구현중" << endl;
 	}
 
 	//Run
