@@ -3,7 +3,7 @@ using namespace jgw;
 void onMouse(int event, int x, int y, int flags, void* userdata);
 int main(void) {
 	Mat src(500, 500, CV_8UC3, Scalar(255, 255, 255));
-	String function_text[] = { "Save", "Load", "Clear", "Run", "Exit", "Save", "x2" };
+	String function_text[] = { "Save", "Load", "Clear", "Run", "Exit", "Feature1", "Feature2" };
 
 	int array_size = sizeof(function_text) / sizeof(function_text[0]); //기능 개수
 	src_resize(src, array_size);
@@ -28,11 +28,11 @@ void onMouse(int event, int x, int y, int flags, void* userdata) {
 	Rect num_input_area = Rect(LINE_THICKNESS, LINE_THICKNESS, INPUT_WINDOW - 2 * LINE_THICKNESS, INPUT_WINDOW - 2 * LINE_THICKNESS);
 
 	vector<Rect> function_area; //각 기능들의 영역
-	//[0]: "Save" // [1]: "Load" // [2]: "Clear" // [3]: "Run" // [4]: "Exit"
-	//[5]: 
-	for (int i = 0; i < 5; i++) {
-		Rect x = Rect(INPUT_WINDOW, src.rows * i / 5, src.cols - INPUT_WINDOW, src.rows / 5);
-		function_area.push_back(x);
+	for (int w = INPUT_WINDOW; w < src.cols; w += FUNCT_WINDOW_W) {
+		for (int h = 0; h < FUNCT_WINDOW_H * 5; h += FUNCT_WINDOW_H) { //기능 영역 분리(세로로 5개씩 자르기)
+			Rect n = Rect(w, h, FUNCT_WINDOW_W, FUNCT_WINDOW_H);
+			function_area.push_back(n);
+		}
 	}
 
 	static Point old_pixel;
@@ -43,7 +43,7 @@ void onMouse(int event, int x, int y, int flags, void* userdata) {
 		break;
 
 	case EVENT_LBUTTONUP:
-		if (Point(x, y) == old_pixel) {
+		if (Point(x, y) == old_pixel) { //마우스 왼쪽 버튼을 누른 좌표와 땠을 때의 좌표가 일치했을 때
 			//Save
 			if (function_area[0].contains(old_pixel))
 				save_function(src, num_input_area);
@@ -59,13 +59,19 @@ void onMouse(int event, int x, int y, int flags, void* userdata) {
 			//Exit
 			else if (function_area[4].contains(old_pixel))
 				exit(1);
+			//Feature1
+			else if (function_area[5].contains(old_pixel))
+				feature1(src, num_input_area);
+			//Feature2
+			else if (function_area[6].contains(old_pixel))
+				feature2(src);
 		}
 		break;
 
 	case EVENT_MOUSEMOVE:
 		if (flags & EVENT_FLAG_LBUTTON) { //왼쪽 마우스가 눌린 상태에서 움직이는지
 			if (num_input_area.contains(Point(x, y)) && num_input_area.contains(old_pixel)) { //500x500 영역 안에 움직이는지
-				line(src, old_pixel, Point(x, y), Scalar::all(0), 5);
+				line(src, old_pixel, Point(x, y), Scalar::all(0), 5); //검정색으로 그리기
 				old_pixel = Point(x, y);
 			}
 		}
