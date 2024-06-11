@@ -64,7 +64,7 @@ void onMouse(int event, int x, int y, int flags, void* userdata) {
 				feature1(src, num_input_area);
 			//Feature2
 			else if (function_area[6].contains(old_pixel))
-				feature2(src);
+				feature2(src, num_input_area);
 		}
 		break;
 
