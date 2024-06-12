@@ -3,7 +3,7 @@ using namespace jgw;
 void onMouse(int event, int x, int y, int flags, void* userdata);
 int main(void) {
 	Mat src(500, 500, CV_8UC3, Scalar(255, 255, 255));
-	String function_text[] = { "Save", "Load", "Clear", "Run", "Exit", "Contours", "center_gravity", "center"};
+	String function_text[] = { "Save", "Load", "Clear", "Run", "Exit", "Contours", "center_gravity", "center" };
 
 	int array_size = sizeof(function_text) / sizeof(function_text[0]); //기능 개수
 	src_resize(src, array_size);
@@ -64,7 +64,7 @@ void onMouse(int event, int x, int y, int flags, void* userdata) {
 				cout << "외곽선 개수: " << contours(src, num_input_area) << endl << endl;
 			//Center of gravity
 			else if (function_area[6].contains(old_pixel))
-				center_of_gravity(src, num_input_area);
+				cout << "무게 중심: " << center_of_gravity(src, num_input_area) << endl << endl;
 			//Center
 			else if (function_area[7].contains(old_pixel))
 				center(src, num_input_area);
