@@ -103,15 +103,6 @@ namespace jgw {
 		cvtColor(dst, dst, COLOR_GRAY2BGR);
 		imshow("num", dst(outside));
 
-		cout << "결과 예상 값: ";
-		if (contours.size() == 1)
-			cout << "1, 2, 3, 4, 5, 7" << endl;
-		else if (contours.size() == 2)
-			cout << "0, 4, 6, 9" << endl;
-		else if (contours.size() == 3)
-			cout << "8" << endl;
-		else cout << "다시 한 번 그려보시오" << endl;
-
 		return contours.size();
 	}
 
