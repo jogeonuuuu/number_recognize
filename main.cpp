@@ -60,8 +60,20 @@ void onMouse(int event, int x, int y, int flags, void* userdata) {
 			else if (function_area[4].contains(old_pixel))
 				exit(1);
 			//Contours
-			else if (function_area[5].contains(old_pixel))
-				cout << "외곽선 개수: " << contours(src, num_input_area) << endl << endl;
+			else if (function_area[5].contains(old_pixel)) {
+				int x = contours(src, num_input_area);
+
+				cout << "결과 예상 값: ";
+				if (x == 1)
+					cout << "1, 2, 3, 4, 5, 7" << endl;
+				else if (x == 2)
+					cout << "0, 4, 6, 9" << endl;
+				else if (x == 3)
+					cout << "8" << endl;
+				else cout << "다시 한 번 그려보시오" << endl;
+				cout << "외곽선 개수: " << x << endl << endl;
+
+			}
 			//Center of gravity
 			else if (function_area[6].contains(old_pixel))
 				cout << "무게 중심: " << center_of_gravity(src, num_input_area) << endl << endl;
