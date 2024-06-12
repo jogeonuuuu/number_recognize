@@ -23,8 +23,9 @@ namespace jgw {
 	void load_function(Mat& src, Rect& area);
 	void clear_function(Mat& src, Rect& area);
 
-	void feature1(Mat& src, Rect& area);
-	void feature2(Mat& src, Rect& area);
+	int contours(Mat& src, Rect& area);
+	void center_of_gravity(Mat& dst, Rect& area);
+	void center(Mat& src, Rect& area);
 	void run_function(Mat& src, Rect& area);
 }
 #endif // !__MYLIB_H__
