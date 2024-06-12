@@ -43,8 +43,8 @@ namespace jgw {
 	}
 
 	//Save
-	void save_function(Mat& src, Rect& area) {
-		//String file_route = "C:\\Users\\jogeo\\source\\repos\\Open_cv\\Project_기말\\num_data\\"; //작성자 파일 경로
+	void save_function(Mat& src, Rect& area) { //line 47, 56
+		String file_route = "C:\\Users\\jogeo\\source\\repos\\Open_cv\\Project_기말\\num_data\\"; //작성자 파일 경로
 		String file_name;
 		cout << "<Save> 파일명 입력 : "; //학번_00_00
 		cin >> file_name;
@@ -53,22 +53,22 @@ namespace jgw {
 		file_name += ".jpg";
 		Mat dst;
 		resize(src(area), dst, Size(INPUT_WINDOW, INPUT_WINDOW));
-		//bool tf = imwrite(file_route + file_name, dst);  //작성자 파일 경로
-		bool tf = imwrite(file_name, dst);
+		bool tf = imwrite(file_route + file_name, dst);  //작성자 파일 경로
+		//bool tf = imwrite(file_name, dst);
 		if (tf) cout << file_name << "파일이 저장됨" << endl << endl;
 	}
 
 	//Load
-	void load_function(Mat& src, Rect& area) {
-		//String file_route = "C:\\Users\\jogeo\\source\\repos\\Open_cv\\Project_기말\\num_data\\"; //작성자 파일 경로
+	void load_function(Mat& src, Rect& area) { //line 63, 70
+		String file_route = "C:\\Users\\jogeo\\source\\repos\\Open_cv\\Project_기말\\num_data\\"; //작성자 파일 경로
 		String file_name;
 		cout << "<Load> 파일명 입력 : "; //학번_00_00
 		cin >> file_name;
 		if (file_name == "exit") return;
 
 		file_name += ".jpg";
-		//Mat mRead = imread(file_route + file_name); //작성자 파일 경로
-		Mat mRead = imread(file_name);
+		Mat mRead = imread(file_route + file_name); //작성자 파일 경로
+		//Mat mRead = imread(file_name);
 		if (mRead.empty()) {
 			cout << "파일 불러오기 실패" << endl << endl;
 			return;
@@ -95,6 +95,8 @@ namespace jgw {
 		vector<vector<Point>> contours;
 		findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE); //외곽선 개수
 		//외부 외곽선 정보
+		if (contours.size() == 0)
+			return 0;
 		int max_index = contours.size() - 1;
 		Rect outside = boundingRect(contours[max_index]);
 
@@ -112,9 +114,9 @@ namespace jgw {
 
 		return contours.size();
 	}
-	
+
 	//무게 중심
-	void center_of_gravity(Mat& src, Rect& area) {
+	Point center_of_gravity(Mat& src, Rect& area) {
 		Mat dst;
 		cvtColor(src(area), dst, COLOR_BGR2GRAY);
 		threshold(dst, dst, 0, 255, THRESH_BINARY_INV | THRESH_OTSU); //객체 인식을 하기위해 객체를 흰색으로 변환
@@ -126,34 +128,35 @@ namespace jgw {
 		findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE); //외곽선 개수
 
 		//외부 외곽선에 대한 정보
+		if (contours.size() == 0)
+			return Point(0, 0);
 		int max_index = contours.size() - 1; //외부 외곽선 index
 		Rect outside = boundingRect(contours[max_index]); //외부 외곽선
 
+		//무게 중심(1) (connectedComponentsWithStats 함수 사용)
 		/*Mat labels, stats, centroids;
-		int count = connectedComponentsWithStats(dst, labels, stats, centroids); //
-		if (count > 0)
+		int count = connectedComponentsWithStats(dst, labels, stats, centroids); //배경 index : '0' , 반환값 : (배경+객체) 개수
+		if (count > 1)
 		{
 			Point cog(centroids.at<double>(count - 1, 0), centroids.at<double>(count - 1, 1));
-			cout << cog << endl;
 			cvtColor(dst, dst, COLOR_GRAY2BGR);
 			circle(dst(outside), cog, 3, Scalar(0, 255, 0), -1);
+			cout << cog << endl;
+			cout << "dst(outside): " << dst(outside).cols << ", " << dst(outside).rows << endl; //
 		}
 		else {
 			cerr << "객체 없음" << endl;
 			return;
-		}
+		}*/
 
-		cout << "count : " << count << endl; //2개*/
-
-
-
+		//무게 중심(2) (직접 구현)
 		cvtColor(dst, dst, COLOR_GRAY2BGR);
 		int x_count = 0, y_count = 0;
 		Point x_value, y_value;
 		for (int x = 0; x < outside.width; x++) {
 			for (int y = 0; y < outside.height; y++) {
-				Vec3b pixel = dst.at<Vec3b>(outside.y + y, outside.x + x); //dst(outside).at<Vec3b>(y, x)
-				if (pixel == Vec3b(255, 255, 255)) {
+				//dst(outside).at<Vec3b>(y, x) == dst.at<Vec3b>(outside.y + y, outside.x + x)( = Vec3b pixel)
+				if (dst(outside).at<Vec3b>(y, x) == Vec3b(255, 255, 255)) {
 					x_count++; y_count++;
 					x_value += Point(x, 0);
 					y_value += Point(0, y);
@@ -163,10 +166,10 @@ namespace jgw {
 		Point2f w = x_value / x_count;
 		Point2f h = y_value / y_count;
 		Point cog = w + h;
-		cout << cog << endl;
-		cout << "dst(outside): " << dst(outside).cols << ", " << dst(outside).rows << endl;
 		circle(dst(outside), cog, 3, Scalar(0, 255, 0), -1);
 		imshow("num", dst(outside));
+
+		return cog;
 	}
 
 
@@ -182,6 +185,7 @@ namespace jgw {
 		findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE); //외곽선 개수
 
 		//내/외부 외곽선에 대한 정보
+
 		int max_index = contours.size() - 1; //외부 외곽선 index
 		Rect outside = boundingRect(contours[max_index]); //외부 외곽선
 		Rect inside = boundingRect(contours[0]); //내부 외곽선
@@ -190,10 +194,10 @@ namespace jgw {
 		drawContours(dst, contours, 0, Scalar(0, 0, 255), LINE_THICKNESS);
 
 
-		//바운더리 중심 좌표
+		//내부 외곽선 중심 좌표에 원 그리기(빨)
 		Point inside_center(inside.width / 2, inside.height / 2);
 		circle(dst(inside), inside_center, 3, Scalar(0, 0, 255), -1);
-
+		//외부 외곽선 중심 좌표에 원 그리기(파)
 		Point outside_center(outside.width / 2, outside.height / 2);
 		circle(dst(outside), outside_center, 3, Scalar(255, 0, 0), -1);
 		imshow("num", dst(outside));
@@ -201,6 +205,36 @@ namespace jgw {
 
 	//Run
 	void run_function(Mat& src, Rect& area) {
+		if (contours(src, area) == 1)
+			cout << "구현중" << endl;
+		else if (contours(src, area) == 2) {
+			Mat dst;
+			cvtColor(src(area), dst, COLOR_BGR2GRAY);
+			threshold(dst, dst, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
 
+			Mat kernel = getStructuringElement(MORPH_RECT, Size(5, 3));
+			morphologyEx(dst, dst, MORPH_CLOSE, kernel, Point(-1, -1), 5); //닫기 연산을 통해 조금 떨어진 선을 연결
+
+			vector<vector<Point>> contours;
+			findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE); //외곽선 개수
+			//외부 외곽선 정보
+			if (contours.size() == 0)
+				return;
+			int max_index = contours.size() - 1;
+			Rect outside = boundingRect(contours[max_index]);
+
+			Point cog = center_of_gravity(src, area);
+
+			cout << "결과 값: ";
+			if (dst(outside).rows / 2 < cog.y)
+				cout << "6" << endl;
+			else if (dst(outside).rows / 2 > cog.y)
+				cout << "9" << endl;
+			else if ((dst(outside).rows * 2 / 5 <= cog.y || dst(outside).rows * 3 / 5 >= cog.y)
+				&& (dst(outside).cols * 2 / 5 <= cog.x || dst(outside).cols * 3 / 5 >= cog.x))
+				cout << "0" << endl;
+			else
+				cout << "4" << endl;
+		}
 	}
 }
