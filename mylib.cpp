@@ -23,7 +23,7 @@ namespace jgw {
 	void putText_function(Mat& src, String* text, int array_size) {
 		int thickness = 2; //두께
 		int fontFace = FONT_HERSHEY_SIMPLEX; //폰트 
-		double fontScale = 1.0; //폰트 크기 확대/축소 비율
+		double fontScale = 0.8; //폰트 크기 확대/축소 비율
 
 		int old_height = 0;
 		int current_height = 0;
@@ -83,25 +83,58 @@ namespace jgw {
 		cout << "입력창 삭제됨" << endl << endl;
 	}
 
-	//외곽선(Contours)
-	int contours(Mat& src, Rect& area) {
-		Mat dst;
+	//객체(number) 인식 후 숫자의 전체적인 크기를 300x300 변경(morpholgy연산 전에 수행)
+	double num_resize(Mat& src, Mat& dst, Rect& area) {
 		cvtColor(src(area), dst, COLOR_BGR2GRAY);
 		threshold(dst, dst, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
-
-		Mat kernel = getStructuringElement(MORPH_RECT, Size(5, 3));
-		morphologyEx(dst, dst, MORPH_CLOSE, kernel, Point(-1, -1), 5); //닫기 연산을 통해 조금 떨어진 선을 연결
 
 		vector<vector<Point>> contours;
 		findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE); //외곽선 개수
 		//외부 외곽선 정보
 		if (contours.size() == 0)
-			return 0;
+			cerr << "탐색할 객체가 없음." << endl;
+		int max_index = contours.size() - 1; //외부 외곽선 index
+		Rect outside = boundingRect(contours[max_index]); //외부 외곽선
+
+		//모폴로지 연산에 사용되는 반복횟수(iterations) 계산
+		//그림의 비율을 이용하여 반복횟수 설정
+		double iterations = 1;
+		int i = 1;
+		while (true) {
+			if (outside.width < (dst.cols * i / 10) || outside.height < (dst.rows * i / 10))
+				break;
+			iterations += 0.2;
+			i++;
+		}
+		resize(dst(outside), dst, Size(300, 300));
+
+		morphologyEx(dst, dst, MORPH_CLOSE, Mat(), Point(-1, -1), 10 * iterations); //닫기 연산을 통해 조금 떨어진 선을 연결
+
+		return iterations;
+	}
+
+	//외곽선(Contours)
+	int contours(Mat& src, Rect& area) {
+		Mat dst;
+		double iterations = num_resize(src, dst, area);
+		imshow("dst", dst);
+
+		//cout << "morphology 연산 횟수 : " << iterations << endl;
+		//morphologyEx(dst, dst, MORPH_CLOSE, Mat(), Point(-1, -1), 10 * iterations); //닫기 연산을 통해 조금 떨어진 선을 연결
+		
+		vector<vector<Point>> contours;
+		findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE);
+		if (contours.size() == 0)
+			cerr << "탐색할 객체가 없음." << endl;
 		int max_index = contours.size() - 1;
 		Rect outside = boundingRect(contours[max_index]);
 
 		cvtColor(dst, dst, COLOR_GRAY2BGR);
-		imshow("num", dst(outside));
+		for (int i = 0; i < contours.size(); i++) {
+			Scalar c(rand() & 255, rand() & 255, rand() & 255);
+			drawContours(dst, contours, i, c, LINE_THICKNESS);
+		}
+		imshow("dst2", dst);
 
 		return contours.size();
 	}
