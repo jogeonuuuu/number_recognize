@@ -1,4 +1,3 @@
-
 #include "mylib.h"
 using namespace jgw;
 void onMouse(int event, int x, int y, int flags, void* userdata);
@@ -63,7 +62,7 @@ void onMouse(int event, int x, int y, int flags, void* userdata) {
 				exit(1);
 			//Contours
 			else if (function_area[5].contains(old_pixel)) {
-				int x = contours(src, dst, num_input_area);
+				int x = get_contours(src, dst, num_input_area);
 				imshow("contains", dst);
 
 				cout << "결과 예상 값: ";
