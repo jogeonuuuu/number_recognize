@@ -24,7 +24,7 @@ namespace jgw {
 	void clear_function(Mat& src, Rect& area);
 
 	int contours(Mat& src, Rect& area);
-	void center_of_gravity(Mat& dst, Rect& area);
+	Point center_of_gravity(Mat& dst, Rect& area);
 	void center(Mat& src, Rect& area);
 	void run_function(Mat& src, Rect& area);
 }
