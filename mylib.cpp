@@ -114,7 +114,7 @@ namespace jgw {
 	}
 
 	//외곽선(Contours)
-	int contours(Mat& src, Mat& dst, Rect& area) {
+	int get_contours(Mat& src, Mat& dst, Rect& area) {
 		//Mat dst;
 		Rect outside;
 		double iterations = num_resize(src, dst, area, outside);
@@ -122,7 +122,7 @@ namespace jgw {
 
 		//cout << "morphology 연산 횟수 : " << iterations << endl;
 		morphologyEx(dst, dst, MORPH_CLOSE, Mat(), Point(-1, -1), 10 * iterations); //닫기 연산을 통해 조금 떨어진 선을 연결
-		
+
 		vector<vector<Point>> contours;
 		findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE);
 		if (contours.size() == 0)
@@ -262,25 +262,26 @@ namespace jgw {
 
 		Point cog = center_of_gravity(src, dst, area);
 
-		if (contours(src, dst, area) == 1) {
-			if ((130 <= cog.y && 170 >= cog.y) && (130 <= cog.x && 170 >= cog.x)) {//dst == dst(outside) , dst.rows * 2 /5 == 120
-				/*Mat num1;
-				dst.copyTo(num1);
-				line(num1, Point(0, 0), Point(dst.cols - 1, dst.rows - 1), Scalar(255, 255, 255), LINE_THICKNESS);
+		if (get_contours(src, dst, area) == 1) {
+			Mat num1;
+			dst.copyTo(num1);
+			line(num1, Point(0, 0), Point(dst.cols - 1, dst.rows - 1), Scalar(255, 255, 255), LINE_THICKNESS);
 
-				cvtColor(num1, num1, COLOR_BGR2GRAY);
-				threshold(dst, dst, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
+			cvtColor(num1, num1, COLOR_BGR2GRAY);
+			threshold(dst, dst, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
 
-				vector<vector<Point>> contours;
-				findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE); //외곽선 개수
+			findContours(dst, contour, RETR_LIST, CHAIN_APPROX_NONE); //외곽선 개수
 
-				if(contours.size() == 3)*/
+			imshow("num1", num1);
+
+			if (contour.size() == 4)
 				cout << "1" << endl;
-			}
+			//if ((130 <= cog.y && 170 >= cog.y) && (130 <= cog.x && 170 >= cog.x)) //dst == dst(outside) , dst.rows * 2 /5 == 120
+
 			else
 				cout << endl;
 		}
-		else if (contours(src, dst, area) == 2) {
+		else if (get_contours(src, dst, area) == 2) {
 			if ((130 <= cog.y && 170 >= cog.y) && (130 <= cog.x && 170 >= cog.x)) //dst == dst(outside) , dst.rows * 2 /5 == 120
 				cout << "0" << endl;
 			else if (dst.rows / 2 < cog.y)
@@ -290,7 +291,7 @@ namespace jgw {
 			else
 				cout << "4" << endl;
 		}
-		else if (contours(src, dst, area) == 3)
+		else if (get_contours(src, dst, area) == 3)
 			cout << "8" << endl;
 	}
 }
