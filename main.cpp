@@ -1,3 +1,4 @@
+
 #include "mylib.h"
 using namespace jgw;
 void onMouse(int event, int x, int y, int flags, void* userdata);
@@ -94,5 +95,30 @@ void onMouse(int event, int x, int y, int flags, void* userdata) {
 
 	default:
 		break;
+	}
+}
+
+double num_resize(Mat& src, Mat& dst, Rect& area) {
+	cvtColor(src(area), dst, COLOR_BGR2GRAY);
+	threshold(dst, dst, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
+
+	vector<vector<Point>> contours;
+	findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE); //외곽선 개수
+	//외부 외곽선 정보
+	if (contours.size() == 0)
+		cerr << "탐색할 객체가 없음." << endl;
+	int max_index = contours.size() - 1;
+	Rect outside = boundingRect(contours[max_index]);
+
+	resize(dst(outside), dst, Size(300, 300));
+	//모폴로지 연산에 사용되는 반복횟수(iterations) 계산
+	//그림의 비율을 이용하여 반복횟수 설정
+	double iterations = 1;
+	int i = 1;
+	while (true) {
+		if (outside.width < (dst.cols * i / 10) || outside.height < (dst.rows * i / 10))
+			return iterations;
+		iterations += 0.2;
+		i++;
 	}
 }
