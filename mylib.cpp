@@ -84,7 +84,7 @@ namespace jgw {
 	}
 
 	//객체(number) 인식 후 숫자의 전체적인 크기를 300x300 변경(morpholgy연산 전에 수행)
-	double num_resize(Mat& src, Mat& dst, Rect& area, Rect& outside) {
+	double num_resize(Mat& src, Mat& dst, Rect& area) {
 		cvtColor(src(area), dst, COLOR_BGR2GRAY);
 		threshold(dst, dst, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
 
@@ -94,72 +94,53 @@ namespace jgw {
 		if (contours.size() == 0)
 			cerr << "탐색할 객체가 없음." << endl;
 		int max_index = contours.size() - 1; //외부 외곽선 index
-		outside = boundingRect(contours[max_index]); //외부 외곽선
+		Rect outside = boundingRect(contours[max_index]); //외부 외곽선
 
 		//모폴로지 연산에 사용되는 반복횟수(iterations) 계산
 		//그림의 비율을 이용하여 반복횟수 설정
 		double iterations = 1;
 		int i = 1;
 		while (true) {
-			if (outside.width < (dst.cols * i / 10) || outside.height < (dst.rows * i / 10))
+			if ((outside.width < (dst.cols * i / 10)) || (outside.height < (dst.rows * i / 10)))
 				break;
 			iterations += 0.2;
 			i++;
 		}
 		resize(dst(outside), dst, Size(300, 300));
 
-		//morphologyEx(dst, dst, MORPH_CLOSE, Mat(), Point(-1, -1), 10 * iterations); //닫기 연산을 통해 조금 떨어진 선을 연결
-
 		return iterations;
 	}
 
 	//외곽선(Contours)
 	int get_contours(Mat& src, Mat& dst, Rect& area) {
-		//Mat dst;
-		Rect outside;
-		double iterations = num_resize(src, dst, area, outside);
-		//imshow("dst", dst);
-
-		//cout << "morphology 연산 횟수 : " << iterations << endl;
+		double iterations = num_resize(src, dst, area); //dst 사이즈 : 300x300
 		morphologyEx(dst, dst, MORPH_CLOSE, Mat(), Point(-1, -1), 10 * iterations); //닫기 연산을 통해 조금 떨어진 선을 연결
 
 		vector<vector<Point>> contours;
 		findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE);
-		if (contours.size() == 0)
-			cerr << "탐색할 객체가 없음." << endl;
-		int max_index = contours.size() - 1;
-		outside = boundingRect(contours[max_index]);
 
 		cvtColor(dst, dst, COLOR_GRAY2BGR);
 		for (int i = 0; i < contours.size(); i++) {
 			Scalar c(rand() & 255, rand() & 255, rand() & 255);
 			drawContours(dst, contours, i, c, LINE_THICKNESS);
 		}
-		//imshow("dst", dst);
 
 		return contours.size();
 	}
 
-	//무게 중심 (1) - (직접 구현)
-	Point center_of_gravity(Mat& src, Mat& dst, Rect& area) {
-		Rect outside;
-		double iterations = num_resize(src, dst, area, outside);
-
+	//무게 중심 좌표
+	Point get_CenterOfGravity(Mat& src, Mat& dst, Rect& area) {
+		double iterations = num_resize(src, dst, area);
 		morphologyEx(dst, dst, MORPH_CLOSE, Mat(), Point(-1, -1), 10 * iterations); //닫기 연산을 통해 조금 떨어진 선을 연결
 
 		vector<vector<Point>> contours;
 		findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE);
-		if (contours.size() == 0)
-			cerr << "탐색할 객체가 없음." << endl;
-		int max_index = contours.size() - 1;
-		outside = boundingRect(contours[max_index]);
 
 		int x_count = 0, y_count = 0;
 		Point x_value, y_value;
-		for (int x = 0; x < outside.width; x++) {
-			for (int y = 0; y < outside.height; y++) {
-				//dst(outside).at<Vec3b>(y, x) == dst.at<Vec3b>(outside.y + y, outside.x + x)( = Vec3b pixel)
-				if (dst(outside).at<uchar>(y, x) == 255) {
+		for (int x = 0; x < 300; x++) { //dst.cols == 300
+			for (int y = 0; y < 300; y++) { //dst.rows == 300
+				if (dst.at<uchar>(y, x) == 255) {
 					x_count++; y_count++;
 					x_value += Point(x, 0);
 					y_value += Point(0, y);
@@ -175,121 +156,111 @@ namespace jgw {
 		return cog;
 	}
 
-	//무게 중심 (2)-(connectedComponentsWithStats 함수 사용)
-	/*Point center_of_gravity(Mat& src, Rect& area) {
-		Mat dst;
-		cvtColor(src(area), dst, COLOR_BGR2GRAY);
-		threshold(dst, dst, 0, 255, THRESH_BINARY_INV | THRESH_OTSU); //객체 인식을 하기위해 객체를 흰색으로 변환
-
-		Mat kernel = getStructuringElement(MORPH_RECT, Size(5, 3));
-		morphologyEx(dst, dst, MORPH_CLOSE, kernel, Point(-1, -1), 5); //닫기 연산을 통해 조금 떨어진 선을 연결
-
-		vector<vector<Point>> contours;
-		findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE); //외곽선 개수
-
-		//외부 외곽선에 대한 정보
-		if (contours.size() == 0)
-			return Point(0, 0);
-		int max_index = contours.size() - 1; //외부 외곽선 index
-		Rect outside = boundingRect(contours[max_index]); //외부 외곽선
-
-
-		Mat labels, stats, centroids;
-		int count = connectedComponentsWithStats(dst, labels, stats, centroids); //배경 index : '0' , 반환값 : (배경+객체) 개수
-		if (count > 1)
-		{
-			Point cog(centroids.at<double>(count - 1, 0), centroids.at<double>(count - 1, 1));
-			cvtColor(dst, dst, COLOR_GRAY2BGR);
-			circle(dst(outside), cog, 3, Scalar(0, 255, 0), -1);
-			cout << cog << endl;
-			cout << "dst(outside): " << dst(outside).cols << ", " << dst(outside).rows << endl; //
-		}
-		else {
-			cerr << "객체 없음" << endl;
-			return;
-		}
-
-		imshow("num", dst(outside));
-
-		return cog;
-	}*/
-
-
-	void center(Mat& src, Rect& area) {
-		Mat dst;
-		Rect outside, inside;
-		double iterations = num_resize(src, dst, area, outside);
-		imshow("dst", dst);
-
-		//cout << "morphology 연산 횟수 : " << iterations << endl;
+	//내부 외곽선 중심 좌표
+	Point get_InsideCenter(Mat& src, Mat& dst, Rect& area) {
+		double iterations = num_resize(src, dst, area);
 		morphologyEx(dst, dst, MORPH_CLOSE, Mat(), Point(-1, -1), 10 * iterations); //닫기 연산을 통해 조금 떨어진 선을 연결
 
 		vector<vector<Point>> contours;
 		findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE);
-		if (contours.size() == 0)
-			cerr << "탐색할 객체가 없음." << endl;
-		int max_index = contours.size() - 1;
-		outside = boundingRect(contours[max_index]); //외부 외곽선
-		inside = boundingRect(contours[0]); //내부 외곽선
+		Rect inside = boundingRect(contours[0]); //내부 외곽선
 
 		cvtColor(dst, dst, COLOR_GRAY2BGR);
 		drawContours(dst, contours, 0, Scalar(0, 0, 255), LINE_THICKNESS);
-
 
 		//내부 외곽선 중심 좌표에 원 그리기(빨)
 		Point inside_center(inside.width / 2, inside.height / 2);
 		circle(dst(inside), inside_center, 3, Scalar(0, 0, 255), -1);
 		//외부 외곽선 중심 좌표에 원 그리기(파)
-		Point outside_center(outside.width / 2, outside.height / 2);
-		circle(dst(outside), outside_center, 3, Scalar(255, 0, 0), -1);
-		imshow("center", dst(outside));
+		Point outside_center(dst.cols / 2, dst.rows / 2);
+		circle(dst, outside_center, 3, Scalar(255, 0, 0), -1);
+
+		inside_center = Point(inside.x + inside.width / 2, inside.y + inside.height / 2); //출력화면에서의 좌표
+
+		return inside_center;
+	}
+
+	void draw_WidthLine(Mat& src, Mat& dst) {
+		
 	}
 
 	//Run
 	void run_function(Mat& src, Mat& dst, Rect& area) {
 		cout << "결과 값: ";
-		Rect outside;
-		double iterations = num_resize(src, dst, area, outside);
-
+		double iterations = num_resize(src, dst, area);
 		morphologyEx(dst, dst, MORPH_CLOSE, Mat(), Point(-1, -1), 10 * iterations); //닫기 연산을 통해 조금 떨어진 선을 연결
 
-		vector<vector<Point>> contour;
-		findContours(dst, contour, RETR_LIST, CHAIN_APPROX_NONE);
-		if (contour.size() == 0)
-			cerr << "탐색할 객체가 없음." << endl;
-		int max_index = contour.size() - 1;
-		outside = boundingRect(contour[max_index]);
+		vector<vector<Point>> contours;
+		findContours(dst, contours, RETR_LIST, CHAIN_APPROX_NONE);
 
-		Point cog = center_of_gravity(src, dst, area);
-
-		if (get_contours(src, dst, area) == 1) {
+		int contour_cnt = get_contours(src, dst, area); //외곽선 개수
+		if (contour_cnt == 1) {
 			Mat num1;
 			dst.copyTo(num1);
-			line(num1, Point(0, 0), Point(dst.cols - 1, dst.rows - 1), Scalar(255, 255, 255), LINE_THICKNESS);
+			rectangle(num1, Rect(0, 0, src.cols, src.rows), Scalar(255,255,255), 4);
 
 			cvtColor(num1, num1, COLOR_BGR2GRAY);
-			threshold(dst, dst, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
+			morphologyEx(num1, num1, MORPH_CLOSE, Mat(), Point(-1, -1), 10 * iterations);
+			threshold(num1, num1, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
 
-			findContours(dst, contour, RETR_LIST, CHAIN_APPROX_NONE); //외곽선 개수
+			line(num1, Point(0, num1.rows / 2), Point(num1.cols - 1, num1.rows / 2), Scalar(0, 0, 0), LINE_THICKNESS);
 
+			//방법(1) - 외곽선
+			//findContours(num1, contours, RETR_LIST, CHAIN_APPROX_NONE); //외곽선 개수
+			//cout << endl << "contour.size() : " << contours.size() << endl;
+
+			//방법(2) - 레이블 개수
+			Mat labels, stats, centroids;
+			int n = connectedComponentsWithStats(num1, labels, stats, centroids);
+			int label_cnt = n - 1;
+			//cout << endl << "label_cnt : " << label_cnt << endl;
+			
 			imshow("num1", num1);
 
-			if (contour.size() == 4)
+			Point cog = get_CenterOfGravity(src, dst, area); //무게중심 좌표
+			if (label_cnt <= 4 && (cog.x >= 130 && cog.x <= 160) && (cog.y >= 130 && cog.y <= 160))
 				cout << "1" << endl;
-			//if ((130 <= cog.y && 170 >= cog.y) && (130 <= cog.x && 170 >= cog.x)) //dst == dst(outside) , dst.rows * 2 /5 == 120
-
-			else
-				cout << endl;
+			else {
+				if (cog.y < 110)
+					cout << "7" << endl;
+				else if (cog.x > 160)
+					cout << "3" << endl;
+				else if (cog.y > 170)
+					cout << "2" << endl;
+				else cout << "5" << endl;
+			}
 		}
-		else if (get_contours(src, dst, area) == 2) {
-			if ((130 <= cog.y && 170 >= cog.y) && (130 <= cog.x && 170 >= cog.x)) //dst == dst(outside) , dst.rows * 2 /5 == 120
+		else if (contour_cnt == 2) {
+			Point cog = get_CenterOfGravity(src, dst, area); //무게중심 좌표(O)
+			Point ic = get_InsideCenter(src, dst, area); //내부 외곽선 좌표
+
+			int output_x = ic.x - dst.cols / 2;
+			int output_y = ic.y - dst.rows / 2;
+			Point cd(output_x, output_y); //내부-외부 외곽선 중심좌표(center distance)
+
+			if (((120 <= cog.y && 170 >= cog.y) && (120 <= cog.x && 170 >= cog.x)) //무게중심 좌표 비교
+				&& ((cd.x >= -25 && cd.x <= 25) && (cd.y >= -25 && cd.y <= 25))) //내부-외부 외곽선 좌표 비교
 				cout << "0" << endl;
-			else if (dst.rows / 2 < cog.y)
+
+			else if (cd.y > 0) //(dst.rows / 2 < cog.y)
 				cout << "6" << endl;
-			else if (dst.rows / 2 > cog.y)
-				cout << "9" << endl;
-			else
-				cout << "4" << endl;
+
+			else if (cd.y < 0) { //(dst.rows / 2 > cog.y)
+				bool white = false;
+				//대략적인 제 4사분면에 객체 일부가 있는지 파악하는 반복문
+				for (int x = 200; x < dst.cols; x++) {
+					for (int y = 200; y < dst.rows; y++) {
+						if (dst.at<Vec3b>(y, x) == Vec3b(255, 255, 255)) {
+							white = true;
+							break;
+						}
+					}
+				}
+
+				if (white) //대략적인 제 4사분면에 객체 일부가 있으면 '9'출력
+					cout << "9" << endl;
+				else cout << "4" << endl; //객체 일부가 일절 없으면 '4'출력(닫힌 '4' 제한)
+			}
 		}
 		else if (get_contours(src, dst, area) == 3)
 			cout << "8" << endl;
