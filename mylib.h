@@ -23,9 +23,11 @@ namespace jgw {
 	void load_function(Mat& src, Rect& area);
 	void clear_function(Mat& src, Rect& area);
 
-	int get_contours(Mat& src, Mat& dst, Rect& area);
-	Point center_of_gravity(Mat& src, Mat& dst, Rect& area);
-	void center(Mat& src, Rect& area);
+	double num_resize(Mat& src, Mat& dst, Rect& area);		   //gray
+	int get_contours(Mat& src, Mat& dst, Rect& area);		   //bgr
+	Point get_CenterOfGravity(Mat& src, Mat& dst, Rect& area); //bgr
+	Point get_InsideCenter(Mat& src, Mat& dst, Rect& area);    //bgr
+	void draw_WidthLine(Mat& src, Mat& dst);
 	void run_function(Mat& src, Mat& dst, Rect& area);
 }
 #endif // !__MYLIB_H__
