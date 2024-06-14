@@ -60,30 +60,29 @@ void onMouse(int event, int x, int y, int flags, void* userdata) {
 			//Exit
 			else if (function_area[4].contains(old_pixel))
 				exit(1);
-			//Contours
+			//외곽선 개수
 			else if (function_area[5].contains(old_pixel)) {
 				int x = get_contours(src, dst, num_input_area);
 				imshow("contains", dst);
 
-				cout << "결과 예상 값: ";
-				if (x == 1)
-					cout << "1, 2, 3, 4, 5, 7" << endl;
-				else if (x == 2)
-					cout << "0, 4, 6, 9" << endl;
-				else if (x == 3)
-					cout << "8" << endl;
-				else cout << "다시 한 번 그려보시오" << endl;
 				cout << "외곽선 개수: " << x << endl << endl;
 
 			}
-			//Center of gravity
+			//무게 중심 좌표
 			else if (function_area[6].contains(old_pixel)) {
-				cout << "무게 중심: " << center_of_gravity(src, dst, num_input_area) << endl << endl;
-				imshow("center_of_gravity", dst);
+				Point cog = get_CenterOfGravity(src, dst, num_input_area);
+				cout << "무게 중심 좌표: " << cog << endl << endl;
+				imshow("get_CenterOfGravity", dst);
 			}
-			//Center
-			else if (function_area[7].contains(old_pixel))
-				center(src, num_input_area);
+			//내부 외곽선 중심좌표
+			else if (function_area[7].contains(old_pixel)) {
+				Point inside_center = get_InsideCenter(src, dst, num_input_area);
+				int output_x = inside_center.x - dst.cols / 2;
+				int output_y = inside_center.y - dst.rows / 2;
+				cout << "내부 외곽선 중심좌표: " << inside_center << endl;
+				cout << "내부-외부 외곽선 중심좌표: " <<  Point(output_x, output_y) << endl << endl;
+				imshow("center", dst);
+			}
 		}
 		break;
 
